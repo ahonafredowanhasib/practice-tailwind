@@ -6,63 +6,62 @@ const loader = document.getElementById('premiumLoader');
 const dashboard = document.getElementById('dashboard');
 const loaderText = document.getElementById('loaderText');
 
+// --- THEME LOGIC ---
+if (localStorage.theme === 'light') {
+    document.documentElement.classList.remove('dark');
+} else {
+    document.documentElement.classList.add('dark');
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.theme = 'light';
+    } else {
+        html.classList.add('dark');
+        localStorage.theme = 'dark';
+    }
+}
+
 // OTP Store
 let registerOtp = null;
 let forgotOtp = null;
 
-// --- LOADER HELPERS ---
+// --- HELPERS ---
 function simulateLoading(callback, text = "PROCESSING") {
     loaderText.innerText = text;
-    loader.classList.remove('hidden'); // Show Loader
-    authContainer.classList.add('opacity-0'); // Fade out form
-
-    setTimeout(() => {
-        callback(); // Run the actual logic
-    }, 1000);
-}
-
-// --- NEW LOGOUT FUNCTION ---
-function handleLogout() {
-    // 1. Show loader text
-    loaderText.innerText = "LOGGING OUT PROFILE";
     loader.classList.remove('hidden');
+    authContainer.classList.add('opacity-0');
 
-    // 2. Hide Dashboard
-    dashboard.classList.add('hidden');
-
-    // 3. Wait 1 Second then Reset to Login
     setTimeout(() => {
-        // Hide Loader
-        loader.classList.add('hidden');
-
-        // Show Auth Container again
-        authContainer.style.display = 'block';
-
-        // Allow display:block to apply before fading in
-        requestAnimationFrame(() => {
-            authContainer.classList.remove('opacity-0');
-        });
-
-        // Reset Login Form Inputs
-        document.getElementById('loginId').value = '';
-        document.getElementById('loginPass').value = '';
-        document.getElementById('loginMsg').innerText = '';
-
-        // Ensure Login View is active
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
-        forgotForm.classList.add('hidden');
-
+        callback();
     }, 1000);
 }
 
-// --- TOGGLE VIEW ---
+function showMsg(el, text, colorClass) {
+    let finalColor = colorClass;
+    if (colorClass === 'text-green-400' || colorClass === 'text-green-500') finalColor = 'text-green-600 dark:text-green-400';
+    if (colorClass === 'red') finalColor = 'text-red-500';
+
+    el.className = `text-center text-xs h-5 font-medium ${finalColor}`;
+    el.innerText = text;
+}
+
+// --- NAVIGATION ---
 function toggleViewWithLoader(view) {
     simulateLoading(() => {
         document.querySelectorAll('#loginMsg, #regMsg, #forgotMsg').forEach(el => el.innerText = '');
         loginForm.classList.add('hidden');
         registerForm.classList.add('hidden');
         forgotForm.classList.add('hidden');
+
+        // Clear fields for security
+        // UPDATED: Removed 'oldPass' clearing as it no longer exists
+        document.getElementById('newPass').value = '';
+        document.getElementById('confirmNewPass').value = '';
+        document.getElementById('regPass').value = '';
+        document.getElementById('regConfirmPass').value = '';
 
         if (view === 'register') {
             registerForm.classList.remove('hidden');
@@ -77,13 +76,27 @@ function toggleViewWithLoader(view) {
     }, "LOADING VIEW");
 }
 
-// --- OTP LOGIC ---
+function handleLogout() {
+    loaderText.innerText = "LOGGING OUT PROFILE";
+    loader.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+    setTimeout(() => {
+        loader.classList.add('hidden');
+        authContainer.style.display = 'block';
+        requestAnimationFrame(() => { authContainer.classList.remove('opacity-0'); });
+        document.getElementById('loginId').value = '';
+        document.getElementById('loginPass').value = '';
+        toggleViewWithLoader('login');
+    }, 1000);
+}
+
+// --- OTP ---
 function sendRegisterOtp() {
     const id = document.getElementById('regId').value.trim();
     const btn = document.getElementById('regOtpBtn');
     const msg = document.getElementById('regMsg');
     if (!id || id.length < 5) return showMsg(msg, "Enter valid Email/Phone first", 'red');
-    if (id === localStorage.getItem('u_id')) return showMsg(msg, "Account already exists! Log in.", 'red');
+    if (id === localStorage.getItem('u_id')) return showMsg(msg, "Account exists! Log in.", 'red');
     runOtpSequence(id, btn, msg, (otp) => { registerOtp = otp; });
 }
 
@@ -103,8 +116,8 @@ function runOtpSequence(id, btn, msgElement, saveOtpCallback) {
     setTimeout(() => {
         const otp = Math.floor(1000 + Math.random() * 9000);
         saveOtpCallback(otp);
-        alert(`LuxeStore Verification Code: ${otp}`);
-        showMsg(msgElement, `Code sent to ${id}`, 'text-green-400');
+        alert(`Verification Code: ${otp}`);
+        showMsg(msgElement, `Code sent to ${id}`, 'text-green-500');
         let timeLeft = 30;
         const timer = setInterval(() => {
             btn.innerText = `Resend (${timeLeft}s)`;
@@ -121,11 +134,14 @@ function runOtpSequence(id, btn, msgElement, saveOtpCallback) {
 }
 
 // --- AUTH HANDLERS ---
+
+// 1. REGISTER LOGIC
 function handleRegister(e) {
     e.preventDefault();
     simulateLoading(() => {
         const id = document.getElementById('regId').value.trim();
         const pass = document.getElementById('regPass').value;
+        const confirmPass = document.getElementById('regConfirmPass').value;
         const userCode = document.getElementById('regCode').value;
         const msg = document.getElementById('regMsg');
 
@@ -133,14 +149,17 @@ function handleRegister(e) {
         loader.classList.add('hidden');
 
         if (!id.includes('@') && id.length < 10) return showMsg(msg, "Invalid Email/Phone", 'red');
-        if (pass.length < 6) return showMsg(msg, "Password too weak", 'red');
+        if (pass.length < 6) return showMsg(msg, "Password too weak (min 6 chars)", 'red');
+
+        if (pass !== confirmPass) return showMsg(msg, "Passwords do not match!", 'red');
+
         if (!registerOtp) return showMsg(msg, "Please send code first", 'red');
         if (parseInt(userCode) !== registerOtp) return showMsg(msg, "Wrong OTP Code!", 'red');
 
         localStorage.setItem('u_id', id);
         localStorage.setItem('u_pass', pass);
 
-        showMsg(msg, "Account Created!", 'text-green-400');
+        showMsg(msg, "Account Created!", 'text-green-500');
         setTimeout(() => {
             toggleViewWithLoader('login');
             document.getElementById('loginId').value = id;
@@ -148,28 +167,44 @@ function handleRegister(e) {
     }, "CREATING ACCOUNT");
 }
 
+// 2. RESET/UPDATE LOGIC (UPDATED)
 function handleReset(e) {
     e.preventDefault();
     simulateLoading(() => {
         const id = document.getElementById('forgotId').value.trim();
         const userCode = document.getElementById('forgotCode').value;
+
+        // Get only new password inputs
         const newPass = document.getElementById('newPass').value;
+        const confirmNewPass = document.getElementById('confirmNewPass').value;
+
         const msg = document.getElementById('forgotMsg');
+        const storedPass = localStorage.getItem('u_pass');
 
         authContainer.classList.remove('opacity-0');
         loader.classList.add('hidden');
 
-        if (newPass.length < 6) return showMsg(msg, "New password too weak", 'red');
+        // Basic Checks
         if (!forgotOtp) return showMsg(msg, "Please send code first", 'red');
         if (parseInt(userCode) !== forgotOtp) return showMsg(msg, "Wrong OTP Code!", 'red');
 
+        // CHECK: New Password cannot be the same as current Stored Password (Optional security measure)
+        if (newPass === storedPass) return showMsg(msg, "New Password must be different from current!", 'red');
+
+        // CHECK: New Password must match Confirm Password
+        if (newPass !== confirmNewPass) return showMsg(msg, "New Passwords do not match!", 'red');
+
+        // CHECK: Weak password
+        if (newPass.length < 6) return showMsg(msg, "New password too weak", 'red');
+
+        // Success
         localStorage.setItem('u_pass', newPass);
 
-        showMsg(msg, "Password Reset Success!", 'text-green-400');
+        showMsg(msg, "Password Updated Successfully!", 'text-green-500');
         setTimeout(() => {
             toggleViewWithLoader('login');
             document.getElementById('loginId').value = id;
-        }, 1000);
+        }, 1500);
     }, "UPDATING PASS");
 }
 
@@ -192,9 +227,4 @@ function handleLogin(e) {
             showMsg(msg, "Incorrect ID or Password", 'red');
         }
     }, "AUTHENTICATING");
-}
-
-function showMsg(el, text, colorClass) {
-    el.className = `text-center text-xs h-5 font-medium ${colorClass === 'red' ? 'text-red-400' : colorClass}`;
-    el.innerText = text;
 }
