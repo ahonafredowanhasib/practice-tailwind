@@ -1,0 +1,37 @@
+.blur-blob {
+  filter: blur(80px);
+}
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+html:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Interactive Rating Stars */
+.rating-star {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.rating-star:hover,
+.rating-star.hovered {
+  color: #fbbf24; /* yellow-400 */
+}

@@ -57,7 +57,6 @@ function toggleViewWithLoader(view) {
         forgotForm.classList.add('hidden');
 
         // Clear fields for security
-        // UPDATED: Removed 'oldPass' clearing as it no longer exists
         document.getElementById('newPass').value = '';
         document.getElementById('confirmNewPass').value = '';
         document.getElementById('regPass').value = '';
@@ -167,7 +166,7 @@ function handleRegister(e) {
     }, "CREATING ACCOUNT");
 }
 
-// 2. RESET/UPDATE LOGIC (UPDATED)
+// 2. RESET/UPDATE LOGIC
 function handleReset(e) {
     e.preventDefault();
     simulateLoading(() => {
@@ -188,13 +187,8 @@ function handleReset(e) {
         if (!forgotOtp) return showMsg(msg, "Please send code first", 'red');
         if (parseInt(userCode) !== forgotOtp) return showMsg(msg, "Wrong OTP Code!", 'red');
 
-        // CHECK: New Password cannot be the same as current Stored Password (Optional security measure)
         if (newPass === storedPass) return showMsg(msg, "New Password must be different from current!", 'red');
-
-        // CHECK: New Password must match Confirm Password
         if (newPass !== confirmNewPass) return showMsg(msg, "New Passwords do not match!", 'red');
-
-        // CHECK: Weak password
         if (newPass.length < 6) return showMsg(msg, "New password too weak", 'red');
 
         // Success
@@ -208,6 +202,7 @@ function handleReset(e) {
     }, "UPDATING PASS");
 }
 
+// 3. LOGIN LOGIC (MODIFIED FOR REDIRECT)
 function handleLogin(e) {
     e.preventDefault();
     simulateLoading(() => {
@@ -218,10 +213,13 @@ function handleLogin(e) {
         const storedPass = localStorage.getItem('u_pass');
 
         if (id === storedId && pass === storedPass) {
-            authContainer.style.display = 'none';
-            loader.classList.add('hidden');
-            dashboard.classList.remove('hidden');
+            // Update text to indicate redirection
+            loaderText.innerText = "REDIRECTING...";
+            // Do NOT hide the loader here.
+            // Redirect to store.html immediately (the 1s delay already happened in simulateLoading)
+            window.location.href = './Store/store.html';
         } else {
+            // Failed login, hide loader and show error
             authContainer.classList.remove('opacity-0');
             loader.classList.add('hidden');
             showMsg(msg, "Incorrect ID or Password", 'red');
