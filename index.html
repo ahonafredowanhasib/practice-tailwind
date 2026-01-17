@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStore - Premium Auth</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        cyanGlow: '#00d2ff',
+                        pinkGlow: '#ff007a',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body
+    class="bg-[#1e1e2f] h-screen w-full flex justify-center items-center overflow-hidden text-white font-poppins relative selection:bg-cyan-500 selection:text-white">
+
+    <div
+        class="absolute top-10 left-20 w-72 h-72 bg-pinkGlow rounded-full mix-blend-multiply opacity-20 blur-blob animate-pulse-fast">
+    </div>
+    <div class="absolute bottom-10 right-20 w-80 h-80 bg-cyanGlow rounded-full mix-blend-multiply opacity-20 blur-blob animate-pulse-fast"
+        style="animation-delay: 1s;"></div>
+
+    <div id="authContainer"
+        class="relative w-full max-w-sm p-10 bg-glass backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl transition-all duration-500 opacity-100">
+
+        <div id="loginForm" class="transition-opacity duration-300">
+            <h2 class="text-3xl font-semibold text-center mb-8 tracking-wide">Log In</h2>
+
+            <form onsubmit="handleLogin(event)" class="space-y-6">
+                <div class="relative">
+                    <input type="text" id="loginId" required autocomplete="off"
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 text-white focus:outline-none focus:border-cyanGlow transition-colors placeholder-transparent"
+                        placeholder="Email">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">
+                        Email or Phone
+                    </label>
+                </div>
+
+                <div class="relative">
+                    <input type="password" id="loginPass" required
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 text-white focus:outline-none focus:border-cyanGlow transition-colors placeholder-transparent"
+                        placeholder="Password">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">
+                        Password
+                    </label>
+                </div>
+
+                <div id="loginMsg" class="text-center text-xs h-5 font-medium text-red-400"></div>
+
+                <button type="submit"
+                    class="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/30 transform hover:scale-[1.02] transition-all font-semibold tracking-wide">
+                    Login
+                </button>
+
+                <div class="flex justify-between text-xs text-gray-400 mt-4">
+                    <a href="#" class="hover:text-white transition-colors"
+                        onclick="toggleViewWithLoader('forgot')">Forgot Password?</a>
+                    <a href="#" class="hover:text-white transition-colors"
+                        onclick="toggleViewWithLoader('register')">New User? Register</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="registerForm" class="hidden transition-opacity duration-300">
+            <h2 class="text-3xl font-semibold text-center mb-8 tracking-wide">Register</h2>
+
+            <form onsubmit="handleRegister(event)" class="space-y-6">
+                <div class="relative">
+                    <input type="text" id="regId" required autocomplete="off"
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                        placeholder="Email">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">Valid
+                        Email/Phone</label>
+                </div>
+
+                <div class="relative">
+                    <input type="password" id="regPass" required
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                        placeholder="Pass">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">Strong
+                        Password (6+)</label>
+                </div>
+
+                <div class="flex items-end gap-3">
+                    <div class="relative w-full">
+                        <input type="number" id="regCode" required
+                            class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                            placeholder="Code">
+                        <label
+                            class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">OTP
+                            Code</label>
+                    </div>
+
+                    <button type="button" id="regOtpBtn" onclick="sendRegisterOtp()"
+                        class="w-28 py-2 text-xs font-semibold rounded-lg bg-white/10 border border-white/10 hover:bg-cyanGlow/20 hover:border-cyanGlow/50 hover:text-cyan-300 transition-all text-gray-300 whitespace-nowrap">
+                        Send Code
+                    </button>
+                </div>
+
+                <div id="regMsg" class="text-center text-xs h-5 font-medium"></div>
+
+                <button type="submit"
+                    class="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 shadow-lg shadow-pink-500/30 transform hover:scale-[1.02] transition-all font-semibold">
+                    Register Now
+                </button>
+
+                <div class="text-center text-xs text-gray-400 mt-4">
+                    <a href="#" class="hover:text-white transition-colors"
+                        onclick="toggleViewWithLoader('login')">Already have an account? Login</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="forgotForm" class="hidden transition-opacity duration-300">
+            <h2 class="text-3xl font-semibold text-center mb-8 tracking-wide">Reset Pass</h2>
+
+            <form onsubmit="handleReset(event)" class="space-y-6">
+                <div class="relative">
+                    <input type="text" id="forgotId" required autocomplete="off"
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                        placeholder="Email">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">Registered
+                        Email/Phone</label>
+                </div>
+
+                <div class="flex items-end gap-3">
+                    <div class="relative w-full">
+                        <input type="number" id="forgotCode" required
+                            class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                            placeholder="Code">
+                        <label
+                            class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">OTP
+                            Code</label>
+                    </div>
+
+                    <button type="button" id="forgotOtpBtn" onclick="sendForgotOtp()"
+                        class="w-28 py-2 text-xs font-semibold rounded-lg bg-white/10 border border-white/10 hover:bg-cyanGlow/20 hover:border-cyanGlow/50 hover:text-cyan-300 transition-all text-gray-300 whitespace-nowrap">
+                        Send Code
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <input type="password" id="newPass" required
+                        class="peer w-full bg-transparent border-b border-white/30 py-2 focus:outline-none focus:border-cyanGlow placeholder-transparent"
+                        placeholder="Pass">
+                    <label
+                        class="absolute left-0 -top-3.5 text-cyanGlow text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-cyanGlow peer-focus:text-xs">New
+                        Password</label>
+                </div>
+
+                <div id="forgotMsg" class="text-center text-xs h-5 font-medium"></div>
+
+                <button type="submit"
+                    class="w-full py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 shadow-lg shadow-purple-500/30 transform hover:scale-[1.02] transition-all font-semibold">
+                    Reset Password
+                </button>
+
+                <div class="text-center text-xs text-gray-400 mt-4">
+                    <a href="#" class="hover:text-white transition-colors" onclick="toggleViewWithLoader('login')">Back
+                        to Login</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <div id="premiumLoader"
+        class="fixed inset-0 bg-[#1e1e2f] z-50 flex flex-col justify-center items-center hidden transition-opacity duration-300">
+        <div class="loader-ring"></div>
+        <p id="loaderText" class="mt-4 text-cyan-400 tracking-widest text-sm font-light animate-pulse">PROCESSING</p>
+    </div>
+
+    <div id="dashboard" class="hidden w-full max-w-2xl text-center px-6 animate-[fadeUp_0.8s_ease]">
+        <h1
+            class="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
+            Welcome Back!
+        </h1>
+        <p class="text-gray-400 mb-10">Your Dashboard is ready to serve.</p>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-10 backdrop-blur-md">
+            <div class="text-gray-500 italic">No products listed yet.</div>
+        </div>
+
+        <button onclick="handleLogout()"
+            class="mt-10 px-8 py-2 border border-red-500 text-red-400 rounded-full hover:bg-red-500 hover:text-white transition-all text-sm">
+            Logout
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
